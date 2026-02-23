@@ -1,0 +1,9 @@
+{
+	"name": "spotifyProject1",
+	"location": "uaenorth",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "dc95564b-1532-4183-9a07-88f742d7adb2",
+		"tenantId": "b88b7e2d-301b-4731-9055-d9befbf3edf9"
+	}
+}
