@@ -83,7 +83,7 @@
 										"source": {
 											"type": "AzureSqlSource",
 											"sqlReaderQuery": {
-												"value": "@concat(\n    'SELECT * FROM ',\n    item().schema,\n    '.',\n    item().table,\n    ' WHERE ',\n    item().cdc_col,\n    ' > ''',\n    if(\n        or(empty(item().FromDate), empty(activity('LastCdC').output.value)),\n        '1900-01-01',\n        if(\n            empty(item().FromDate),\n            activity('LastCdC').output.value[0].cdc,\n            item().FromDate\n        )\n    ),\n    ''''\n)",
+												"value": "@concat(\n    'SELECT * FROM ',\n    item().schema,\n    '.',\n    item().table,\n    ' WHERE ',\n    item().cdc_col,\n    ' > ''',\n    if(\n        or(empty(item().from_date), empty(activity('LastCdC').output.value)),\n        '1900-01-01',\n        if(\n            empty(item().from_date),\n            activity('LastCdC').output.value[0].cdc,\n            item().from_date\n        )\n    ),\n    ''''\n)",
 												"type": "Expression"
 											},
 											"queryTimeout": "02:00:00",
@@ -298,7 +298,7 @@
 														"parameters": {
 															"container": "bronze",
 															"folder": {
-																"value": "@item().table_cdc",
+																"value": "@{item().table}_cdc",
 																"type": "Expression"
 															},
 															"file": "empty.json"
@@ -361,7 +361,7 @@
 				},
 				"parameters": {
 					"loop_input": {
-						"type": "string",
+						"type": "array",
 						"defaultValue": [
 							{
 								"schema": "dbo",
