@@ -12,7 +12,7 @@
 
 ## Project Architecture
 
-![Project Architecture](arc.jpg)
+![Project Architecture](images/arc.jpg)
 
 The project follows the **Medallion Architecture** (Bronze → Silver → Gold) with the following flow:
 
