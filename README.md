@@ -451,8 +451,9 @@ LEFT JOIN {{ param.table }} AS {{ param.alias }}
 # Render and Run
 final_sql = Template(sql_template).render(parameters=parameters)
 df_business_view = spark.sql(final_sql)
-
+```
 ---
+
 
 ## 🏆 Gold Layer: Star Schema & Data Historization (SCD)
 
