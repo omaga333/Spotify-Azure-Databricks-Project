@@ -452,118 +452,85 @@ LEFT JOIN {{ param.table }} AS {{ param.alias }}
 final_sql = Template(sql_template).render(parameters=parameters)
 df_business_view = spark.sql(final_sql)
 
-```
-
----
-
-بالتأكيد. إليك قسم **الطبقة الذهبية ونمذجة البيانات (Gold Layer & Data Modeling)** باللغة الإنجليزية لملف README، متضمناً صوراً توضيحية (بشكل روابط صور مقترحة يمكنك استبدالها بصورك الحقيقية) مع شرح مفصل لدور كل عنصر بصري في السياق المعماري:
-
 ---
 
 ## 🏆 Gold Layer: Star Schema & Data Historization (SCD)
 
-In the final stage of the data engineering pipeline, data is transformed from the cleansed, columnar format of the Silver Layer into a business-ready **Star Schema**. This layer is optimized for high-performance analytics, BI reporting, and historical data tracking.
-
-### 📊 Architectural Overview: Bronze to Gold
-
-The diagram below illustrates the complete data journey within our Medallion Architecture. Notice how the data moving into the Gold Layer is structured specifically for consumption, contrasting with the strictly relational or raw formats of earlier stages.
-
-<p align="center">
-<img src="path/to/your/medallion_architecture_diagram.png" alt="Medallion Architecture Diagram (Bronze, Silver, Gold)" width="800">
-
-
-
-
-
-<i>Figure 1: Full pipeline overview, highlighting the transition from normalized Silver tables to the dimensional Gold Star Schema.</i>
-</p>
+In the final stage of the pipeline, data is transformed from the cleansed Silver Layer into a business-ready **Star Schema**. This layer is optimized for high-performance analytics, BI reporting, and historical data tracking.
 
 ### 🧩 Core Modeling Concepts
 
-#### 1. Star Schema Design
-
-We organize data into a central **Fact Table** (containing quantitative, event-based data) surrounded by multiple **Dimension Tables** (containing descriptive attributes). This design simplifies complex queries and dramatically improves read performance for BI tools.
-
-<p align="center">
-<img src="path/to/your/star_schema_diagram.png" alt="Star Schema Diagram" width="600">
+* **Star Schema Design:** Organizing data into central **Fact Tables** (quantitative events) and surrounding **Dimension Tables** (descriptive attributes) to simplify querying.
+* **Slowly Changing Dimensions (SCD):**
+* **SCD Type 1 (Overwrite):** Updates existing records directly. No history is kept. This is used for Fact tables or dimensions where history isn't critical.
+* **SCD Type 2 (History Tracking):** Tracks every change by creating new rows with versioning (Start/End dates). This allows the business to "travel back in time" and see user or product attributes at any specific date.
 
 
-
-
-
-<i>Figure 2: The Spotify Star Schema implementation, showing the central `fact_stream` connected to `dim_user`, `dim_track`, and `dim_date`.</i>
-</p>
-
-#### 2. Slowly Changing Dimensions (SCD)
-
-To manage data that changes over time, we implement two key SCD strategies:
-
-* **SCD Type 1 (Overwrite):** The existing record is updated directly. No historical data is retained. This is used for Fact tables or dimensions where history is not critical (e.g., correcting a typo in an artist's name).
-* **SCD Type 2 (History Tracking):** Every change creates a new row with versioning attributes (Start Date, End Date, and an IsCurrent flag). This allows the business to perform "time-travel" analysis, viewing attributes as they were at any specific point in history.
-
-<p align="center">
-<img src="path/to/your/scd_type1_vs_type2_diagram.png" alt="SCD Type 1 vs Type 2 Comparison" width="700">
-
-
-
-
-
-<i>Figure 3: Visual comparison of SCD Types. Type 1 overwrites the 'City' attribute, while Type 2 creates a new historical record, tracking the move from New York to Los Angeles.</i>
-</p>
 
 ---
 
 ### ⚙️ Declarative Workflow (Delta Live Tables)
 
-The Gold Layer utilizes **Databricks Lakeflow (Delta Live Tables)** to implement a declarative engineering approach. DLT understands the Star Schema relationships defined in the code and automatically generates the lineage and manages the complex data flow.
+The pipeline utilizes **Databricks Lakeflow (DLT)** to implement a declarative engineering approach. Instead of manual processing steps, we define the desired state of the data:
 
-<p align="center">
-<img src="path/to/your/dlt_pipeline_dag.png" alt="Delta Live Tables DAG (Directed Acyclic Graph)" width="800">
-
-
-
-
-
-<i>Figure 4: The automated DLT lineage graph (DAG). It shows data flowing parallelly into staging views and then being merged into the final SCD Type 1 Fact and SCD Type 2 Dimension tables.</i>
-</p>
-
-The workflow operates in three declarative phases:
-
-1. **Staging Phase:** Creating streaming views to capture incremental, real-time changes arriving from the Silver Layer.
-2. **Automated CDC (Change Data Capture):** DLT handles the `APPLY CHANGES` logic to automatically process inserts, updates, and deletes, maintaining the integrity of the SCD Type 2 dimensions without manual merging.
-3. **Data Sequencing:** We use sequence keys (e.g., `updated_at` timestamps) to resolve any out-of-order data arrivals, ensuring the final Gold state always reflects the most recent information.
+1. **Staging Phase:** Creating streaming views that capture incremental changes from the Silver Layer in real-time.
+2. **Automated CDC (Change Data Capture):** Leveraging the `APPLY CHANGES` logic to automatically handle inserts, updates, and deletes without manual merge scripts.
+3. **Data Sequencing:** Using sequence keys (e.g., `updated_at` timestamps) to resolve out-of-order data, ensuring the most recent information always prevails.
 
 ---
 
 ### ✅ Data Quality & Governance (Expectations)
 
-To maintain the "Gold Standard" of data quality, integrated constraints—known as **Expectations**—act as a gatekeeper. These rules validate data *before* it is committed to the final analytical tables, preventing downstream corruption.
+To maintain the "Gold Standard" of data, integrated quality constraints—known as **Expectations**—act as a gatekeeper:
 
-The DLT interface provides real-time visibility into these quality metrics:
-
-<p align="center">
-<img src="path/to/your/dlt_expectations_dashboard.png" alt="DLT Expectations Quality Dashboard" width="800">
-
-
-
-
-
-<i>Figure 5: DLT Quality Dashboard. It shows that 100% of records passed the `valid_user_id` expectation (written as `user_id IS NOT NULL`), ensuring high-integrity dimension tables.</i>
-</p>
-
-Our governance policy includes:
-
-* **Warn:** Flags records that violate non-critical rules for monitoring.
-* **Drop:** Silently discards non-compliant records to preserve table cleanliness.
-* **Fail:** Halts the entire pipeline immediately if critical data thresholds are not met.
+* **Validation Rules:** Ensuring critical fields (like IDs) are not null and maintain referential integrity.
+* **Enforcement Policies:**
+* **Warn:** Flags records that violate rules for monitoring without stopping the flow.
+* **Drop:** Automatically discards non-compliant records to prevent downstream corruption.
+* **Fail:** Halts the entire pipeline if critical data quality thresholds are not met.
 
 ---
 
-### 📊 Final Storage Strategy
+## 🔄 Incremental Loading & End-to-End Testing
 
-* **Dimension Tables (`dim_user`, `dim_track`):** Managed via **SCD Type 2** to provide a complete, traceable historical record of descriptive attributes.
-* **Fact Tables (`fact_stream`):** Managed via **SCD Type 1** (Upsert) to ensure unique, idempotent event records while maximizing query speed.
+In a real-world production environment, you don't process your entire dataset every day. Instead, you perform **Incremental Loads**, where only new or changed data is processed.
+
+### 1. The Challenge: Primary Key Constraints
+
+To simulate a real-world update, we often need to insert data into a source (like Azure SQL) that might contain duplicate keys if the schema is strictly enforced.
+
+* **The Process:** We drop existing primary key constraints on the source tables to allow "messy" or "duplicate" incremental data to flow into our pipeline. This tests the **Idempotency** of our Spark logic.
+
+### 2. Validation of SCD Type 2
+
+During incremental testing, we look for two specific outcomes in our **Gold Layer**:
+
+* **New Records:** Fresh data points are inserted with `is_current = TRUE`.
+* **Updated Records:** For existing users or tracks that changed, the old row is "expired" (`end_at` is set) and a new row is created.
+
+### 3. Sequence-By Logic
+
+The secret to reliable incremental loads is the `sequence_by` property in Delta Live Tables. This tells Spark which record is truly the "latest" based on a timestamp (e.g., `updated_at`), preventing older data from overwriting newer data if it arrives out of order.
 
 ---
 
-**Would you like me to merge all these sections (Utilities, Silver Layer, and Gold Layer) into one comprehensive, final README file?**
+## 📦 Databricks Asset Bundles (DABs) for CI/CD
+
+Moving from a "Notebook" approach to an "Engineering" approach requires professional deployment. **Databricks Asset Bundles (DABs)** allow us to package our entire project—code, pipelines, and configurations—as a single unit.
+
+### 🛠️ Key Components
+
+* **`databricks.yml`:** The backbone of your deployment. It defines the project name, unique identifiers, and **Targets** (e.g., Dev, QA, Prod).
+* **Multi-Environment Support:** We define different "Hosts" (workspace URLs) for each environment. This ensures that a developer can't accidentally deploy test code to the Production workspace.
+
+### 🚀 The Deployment Workflow
+
+Using the Databricks CLI, we follow these steps:
+
+1. **`bundle validate`:** Checks the YAML syntax and project structure for errors.
+2. **`bundle summary`:** Provides a report of where and what will be deployed.
+3. **`bundle deploy -t [target]`:** Pushes the code to the specific environment.
+
+> **Pro Tip:** In the `dev` target, we often disable `source_link_deployment` to ensure the deployed artifacts are self-contained within the bundle folder rather than referencing local files.
+
+---
