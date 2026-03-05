@@ -460,6 +460,9 @@ df_business_view = spark.sql(final_sql)
 
 In the final stage of the pipeline, data is transformed from the cleansed Silver Layer into a business-ready **Star Schema**. This layer is optimized for high-performance analytics, BI reporting, and historical data tracking.
 
+![Project Architecture](images/gold1.jpg)
+
+
 ### 🧩 Core Modeling Concepts
 
 * **Star Schema Design:** Organizing data into central **Fact Tables** (quantitative events) and surrounding **Dimension Tables** (descriptive attributes) to simplify querying.
@@ -467,9 +470,7 @@ In the final stage of the pipeline, data is transformed from the cleansed Silver
 * **SCD Type 1 (Overwrite):** Updates existing records directly. No history is kept. This is used for Fact tables or dimensions where history isn't critical.
 * **SCD Type 2 (History Tracking):** Tracks every change by creating new rows with versioning (Start/End dates). This allows the business to "travel back in time" and see user or product attributes at any specific date.
 
-
-
----
+![Project Architecture](images/gold.jpg)
 
 ### ⚙️ Declarative Workflow (Delta Live Tables)
 
@@ -533,6 +534,10 @@ Using the Databricks CLI, we follow these steps:
 2. **`bundle summary`:** Provides a report of where and what will be deployed.
 3. **`bundle deploy -t [target]`:** Pushes the code to the specific environment.
 
-> **Pro Tip:** In the `dev` target, we often disable `source_link_deployment` to ensure the deployed artifacts are self-contained within the bundle folder rather than referencing local files.
+![](images/host.jpg)
+![](images/deploy.jpg)
 
----
+![](images/publish.jpg)
+
+
+
