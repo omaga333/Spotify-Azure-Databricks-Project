@@ -229,6 +229,7 @@ Instead of manually running pipelines for each table:
 ```text
 /table_name/cdc/
 ```
+  * ![](images/cdcc.png)
 
 * Place files:
 
@@ -236,12 +237,7 @@ Instead of manually running pipelines for each table:
   * `empty.json` → used for empty file handling.
 * Initial load of `cdc.json` should have a default historical date, e.g., `1900-01-01`.
 
----
-تمام يا هيثم، أنا هلخّصلك شرح **Spark Streaming مع Databricks Autoloader** ده بطريقة **منظمة خطوة بخطوة**، بحيث يبقى عندك README عملي أو ملاحظات مرجعية لأي مشروع:
-
----
-
-# README: Spark Streaming with Databricks Autoloader
+--- Spark Streaming with Databricks Autoloader
 
 
 Autoloader in **Databricks** is a high-level streaming ingestion framework built on **Spark Structured Streaming** that simplifies incremental data loading from cloud storage (like ADLS, S3, or GCS).
