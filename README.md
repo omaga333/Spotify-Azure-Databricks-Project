@@ -117,8 +117,11 @@ The pipelines are built with **Azure Data Factory (ADF)** and implement **dynami
 
   * Source: SQL Database (dynamic query)
   * Sink: Data Lake
+  * ![](images/aztodlk.png)
+
   * Parameters for table, schema, and CDC column
 * Use **JSON file** to store last CDC value:
+  * ![](images/inc.png)
 
 ```json
 {
@@ -134,9 +137,6 @@ FROM @{pipeline().parameters.schema}.@{pipeline().parameters.table}
 WHERE @{pipeline().parameters.cdc_column} > '@{activity('GetLastCDC').output.lastCDC}'
 ```
 
-تمام يا هيثم، هعمللك **ملف README** مرتب يشرح كل اللي اتكلمنا عنه في الفيديوهات عن **Backfilling و Looping Pipelines في ADF**، بحيث تقدّر تستخدمه كمرجع لأي مشروع Data Engineering:
-
----
 
 # R Backfilling & Looping Pipelines in Azure Data Factory (ADF)
 
@@ -196,10 +196,12 @@ from_date = "2022-01-01"
 
 Instead of manually running pipelines for each table:
 
-### Steps:
 
 1. Create a **ForEach activity** in ADF.
+ ![](images/loopingCopy.png)
+
 2. Prepare a **JSON array of table metadata**:
+  * ![](images/json.png)
 
 ```json
 [
