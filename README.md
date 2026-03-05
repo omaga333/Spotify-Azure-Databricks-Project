@@ -52,6 +52,7 @@ The project follows the **Medallion Architecture** (Bronze → Silver → Gold) 
 ---
 
 ## Key Concepts Covered
+![](images/req.png)
 
 * **Incremental Processing:** Process data in small increments rather than bulk
 * **Backfilling:** Fill missing data for specific intervals
